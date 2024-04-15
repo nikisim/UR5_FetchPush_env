@@ -1,7 +1,72 @@
-# Hindsight Experience Replay (HER)
-This is a pytorch implementation of [Hindsight Experience Replay](https://arxiv.org/abs/1707.01495). 
+# UR5_FetchPush env
 
-## Acknowledgement:
+## UR5 FetchPush Gym Environment
+This repository contains a custom OpenAI Gym-compatible environment for simulating a robotic manipulation task using the UR5 robotic arm. The task, named "FetchPush," involves the UR5 robot pushing an object to a target location on a flat surface. This environment is designed for research and development in the field of reinforcement learning and robotics.
+
+### Environment Description
+In the FetchPush task, the UR5 robot is equipped with a two-finger gripper and is tasked with pushing a puck to a specified goal location. The environment provides a realistic simulation of the robot's dynamics and the interaction with the object.
+
+Key features of the environment include:
+
+Realistic UR5 robot arm simulation with a two-finger gripper. (Thanks to [ElectronicElephant](https://github.com/ElectronicElephant/pybullet_ur5_robotiq) for meshes and visual)
+
+- A puck that the robot must push to the goal.
+- Observation space that includes the position and velocity of the robot's joints, the position of the puck, and the target goal position.
+- Reward function that encourages the robot to push the puck as close to the goal as possible.
+- Configurable initial conditions for the robot's arm and the puck's position.
+
+## TODO List
+- [ ] Proper Wandb support
+- [ ] Add plots and demo
+- [ ] Collect datasets for offline RL methods
+
+### Installation
+
+To install the UR5 FetchPush Gym Environment, follow these steps:
+```bash
+git clone https://github.com/nikisim/UR5_FetchPush_env.git
+pip install -e .
+```
+
+### Usage
+To use the UR5 FetchPush environment, you can create an instance of the environment and interact with it as you would with any other Gym environment:
+
+```python
+import gym
+import gym_UR5_FetchPush
+
+
+env = gym.make('gym_UR5_FetchPush/UR5_FetchPushEnv-v0')
+
+# Reset the environment
+observation = env.reset()
+
+# Sample a random action
+action = env.action_space.sample()
+
+# Step the environment
+observation, reward, done, info = env.step(action)
+```
+
+### Dependencies
+This environment requires the following dependencies:
+
+- gym
+- numpy
+- pybullet (for physics simulation)
+
+Make sure to install these dependencies before using the environment.
+
+## Instruction to train DDPG+HER for UR5_FetchPush
+If you want to use GPU, just add the flag `--cuda` **(Not Recommended, Better Use CPU)**.
+```bash
+mpirun -np 8 python -u train.py --save-dir saved_models/UR5_FetchPush 2>&1 | tee push_UR5.log
+```
+
+Check ```arguments.py``` for more info about flags and options
+
+
+<!-- ## Acknowledgement:
 - [Openai Baselines](https://github.com/openai/baselines)
 
 ## Requirements
@@ -11,10 +76,7 @@ This is a pytorch implementation of [Hindsight Experience Replay](https://arxiv.
 - pytorch=1.0.0 (**If you use pytorch-0.4.1, you may have data type errors. I will fix it later.**)
 - mpi4py
 
-## TODO List
-- [x] support GPU acceleration - although I have added GPU support, but I still not recommend if you don't have a powerful machine.
-- [x] add multi-env per MPI.
-- [x] add the plot and demo of the **FetchSlide-v1**.
+
 
 ## Instruction to run the code
 If you want to use GPU, just add the flag `--cuda` **(Not Recommended, Better Use CPU)**.
@@ -51,4 +113,4 @@ It was plotted by using 5 different seeds, the solid line is the median value.
 
 FetchPush-v1| FetchPickAndPlace-v1| FetchSlide-v1
 -----------------------|-----------------------|-----------------------|
-![](figures/push.gif)| ![](figures/pick.gif)| ![](figures/slide.gif)
+![](figures/push.gif)| ![](figures/pick.gif)| ![](figures/slide.gif) -->
