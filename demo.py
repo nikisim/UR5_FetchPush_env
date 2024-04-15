@@ -1,7 +1,7 @@
 import torch
 from rl_modules.models import actor
 from arguments import get_args
-import gym
+import gymnasium as gym
 import numpy as np
 
 # process the inputs
@@ -20,9 +20,11 @@ if __name__ == '__main__':
     model_path = args.save_dir + args.env_name + '/model.pt'
     o_mean, o_std, g_mean, g_std, model = torch.load(model_path, map_location=lambda storage, loc: storage)
     # create the environment
-    env = gym.make(args.env_name)
+    env = gym.make(args.env_name, render_mode = "rgb_array")
+    # env = gym.wrappers.RecordVideo(env, f"videos/FetchReach")#, episode_trigger = lambda x: x % 100 == 0)
+
     # get the env param
-    observation = env.reset()
+    observation, _ = env.reset()
     # get the environment params
     env_params = {'obs': observation['observation'].shape[0], 
                   'goal': observation['desired_goal'].shape[0], 
@@ -34,17 +36,17 @@ if __name__ == '__main__':
     actor_network.load_state_dict(model)
     actor_network.eval()
     for i in range(args.demo_length):
-        observation = env.reset()
+        observation, _ = env.reset()
         # start to do the demo
         obs = observation['observation']
         g = observation['desired_goal']
         for t in range(env._max_episode_steps):
-            env.render()
+            # env.render()
             inputs = process_inputs(obs, g, o_mean, o_std, g_mean, g_std, args)
             with torch.no_grad():
                 pi = actor_network(inputs)
             action = pi.detach().numpy().squeeze()
             # put actions into the environment
-            observation_new, reward, _, info = env.step(action)
+            observation_new, reward, _, _,info = env.step(action)
             obs = observation_new['observation']
         print('the episode is: {}, is success: {}'.format(i, info['is_success']))

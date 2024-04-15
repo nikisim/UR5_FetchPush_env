@@ -3,6 +3,17 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+wandb/
+saved_models/
+datasets/
+figures/
+*.log
+*.ipynb
+test.py
+train.py
+meshes/robotiq_140/
+meshes/ur5
+
 # C extensions
 *.so
 

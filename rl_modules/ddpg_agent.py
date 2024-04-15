@@ -7,14 +7,33 @@ from mpi_utils.mpi_utils import sync_networks, sync_grads
 from rl_modules.replay_buffer import replay_buffer
 from rl_modules.models import actor, critic
 from mpi_utils.normalizer import normalizer
+import wandb
+import uuid
 from her_modules.her import her_sampler
 
 """
 ddpg with HER (MPI-version)
 
 """
+
+# wandb params
+project: str = "UR5_FetchPush"
+group: str = "DDPG_HER"
+name: str = "FetchPush"
+
 class ddpg_agent:
     def __init__(self, args, env, env_params):
+        
+        # wandb init
+        wandb.init(
+        project=project,
+        group=group,
+        name=name,
+        id=str(uuid.uuid4()),
+        )
+        wandb.mark_preempting()
+
+
         self.args = args
         self.env = env
         self.env_params = env_params
@@ -112,6 +131,17 @@ class ddpg_agent:
                 self._soft_update_target_network(self.critic_target_network, self.critic_network)
             # start to do the evaluation
             success_rate = self._eval_agent()
+
+            print('******')
+            print("Success_rate:", success_rate)
+            print('******')
+
+            wandb.log({
+                "eval/is_succeess": success_rate,
+                 },
+                step=int(epoch),
+            )
+
             if MPI.COMM_WORLD.Get_rank() == 0:
                 print('[{}] epoch is: {}, eval success rate is: {:.3f}'.format(datetime.now(), epoch, success_rate))
                 torch.save([self.o_norm.mean, self.o_norm.std, self.g_norm.mean, self.g_norm.std, self.actor_network.state_dict()], \
