@@ -24,16 +24,6 @@ name: str = "FetchPush"
 class ddpg_agent:
     def __init__(self, args, env, env_params):
         
-        # wandb init
-        wandb.init(
-        project=project,
-        group=group,
-        name=name,
-        id=str(uuid.uuid4()),
-        )
-        wandb.mark_preempting()
-
-
         self.args = args
         self.env = env
         self.env_params = env_params
@@ -67,6 +57,14 @@ class ddpg_agent:
         self.g_norm = normalizer(size=env_params['goal'], default_clip_range=self.args.clip_range)
         # create the dict for store the model
         if MPI.COMM_WORLD.Get_rank() == 0:
+            # wandb init
+            wandb.init(
+            project=project,
+            group=group,
+            name=name,
+            id=str(uuid.uuid4()),
+            )
+            wandb.mark_preempting()
             if not os.path.exists(self.args.save_dir):
                 os.mkdir(self.args.save_dir)
             # path to save the model
@@ -79,6 +77,7 @@ class ddpg_agent:
         train the network
 
         """
+        best_score = -1e6
         # start to collect samples
         for epoch in range(self.args.n_epochs):
             for _ in range(self.args.n_cycles):
@@ -136,16 +135,23 @@ class ddpg_agent:
             print("Success_rate:", success_rate)
             print('******')
 
-            wandb.log({
+            
+            if MPI.COMM_WORLD.Get_rank() == 0:
+                wandb.log({
                 "eval/is_succeess": success_rate,
                  },
                 step=int(epoch),
-            )
-
-            if MPI.COMM_WORLD.Get_rank() == 0:
+                )
                 print('[{}] epoch is: {}, eval success rate is: {:.3f}'.format(datetime.now(), epoch, success_rate))
-                torch.save([self.o_norm.mean, self.o_norm.std, self.g_norm.mean, self.g_norm.std, self.actor_network.state_dict()], \
-                            self.model_path + '/model.pt')
+                if success_rate > best_score:
+                    #save best model
+                    torch.save([self.o_norm.mean, self.o_norm.std, self.g_norm.mean, self.g_norm.std, self.actor_network.state_dict()], \
+                            self.model_path + '/model_best.pt')
+                    best_score = success_rate
+                if epoch % 50 == 0:
+                    model_epoch = f'/model_{epoch}.pt'
+                    torch.save([self.o_norm.mean, self.o_norm.std, self.g_norm.mean, self.g_norm.std, self.actor_network.state_dict()], \
+                            self.model_path + model_epoch)
 
     # pre_process the inputs
     def _preproc_inputs(self, obs, g):

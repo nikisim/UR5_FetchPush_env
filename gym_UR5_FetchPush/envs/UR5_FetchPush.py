@@ -22,21 +22,17 @@ class UR5_FetchPushEnv(gym.Env):
 
     SIMULATION_STEP_DELAY = 1 / 240.
 
-    def __init__(self) -> None:
+    def __init__(self, render=False) -> None:
         super(UR5_FetchPushEnv, self).__init__()
 
-        # ycb_models = YCBModels(
-        # os.path.join('./data/ycb', '**', 'textured-decmp.obj'),
-        # )
         camera = Camera((1, 1, 1),
                         (0, 0, 0),
                         (0, 0, 1),
                         0.1, 5, (320, 320), 40)
         camera = None
-        # robot = Panda((0, 0.5, 0), (0, 0, math.pi))
         robot = UR5Robotiq85((0, 0.5, 0), (0, 0, 0))
         self.robot = robot
-        self.vis = False
+        self.vis = render
         if self.vis:
             self.p_bar = tqdm(ncols=0, disable=False)
         self.camera = camera
@@ -129,7 +125,7 @@ class UR5_FetchPushEnv(gym.Env):
 
     def step(self, action):
         """
-        new_action: (dx,dy,dz)
+        new_action: (dx,dy) -diff for x and y axis for end-effector
         action: (x, y, z, roll, pitch, yaw, gripper_opening_length) for End Effector Position Control
                 (a1, a2, a3, a4, a5, a6, a7, gripper_opening_length) for Joint Position Control
         control_method:  'end' for end effector position control
@@ -244,10 +240,6 @@ class UR5_FetchPushEnv(gym.Env):
             'desired_goal': np.array(des_goal).copy(),
         }
 
-    # def reset_box(self):
-    #     p.setJointMotorControl2(self.boxID, 0, p.POSITION_CONTROL, force=1)
-    #     p.setJointMotorControl2(self.boxID, 1, p.VELOCITY_CONTROL, force=0)
-
     # check if the puck outside the table
     def _check_done(self, obs):
         if obs['achieved_goal'][0] < -0.3 or obs['achieved_goal'][0] > 0.3:
@@ -271,19 +263,6 @@ class UR5_FetchPushEnv(gym.Env):
             self.puck_pos =  self._sample_puck_pos().copy()
             obs = self._get_obs()
         return obs
-    
-        # self.reset_box()
-        new_target_position_target = self.random_position_on_table(0.5,0.5, 0.03 + 0.05 / 2)
-        new_target_position_puck = self.random_position_on_table(0.5,0.5, 0.03 + 0.05 / 2) 
-        p.resetBasePositionAndOrientation(self.target_body, new_target_position_target, [0, 0, 0, 1])
-        p.resetBasePositionAndOrientation(self.puckId, new_target_position_puck, [0, 0, 0, 1])
-
-        print('----'*10)
-        print('Puck pos:', new_target_position_puck)
-        print('Target pos:', new_target_position_target)
-        print('----'*10)
-
-        return self._get_obs(), self.info
 
     def close(self):
         p.disconnect(self.physicsClient)

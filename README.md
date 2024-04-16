@@ -16,9 +16,9 @@ Realistic UR5 robot arm simulation with a two-finger gripper. (Thanks to [Electr
 - Configurable initial conditions for the robot's arm and the puck's position.
 
 ## TODO List
-- [ ] Proper Wandb support
-- [ ] Add plots and demo
-- [ ] Collect datasets for offline RL methods
+- [x] Proper Wandb support
+- [x] Add plots and demo
+- [x] Collect datasets for offline RL methods
 
 ### Installation
 
@@ -36,7 +36,7 @@ import gym
 import gym_UR5_FetchPush
 
 
-env = gym.make('gym_UR5_FetchPush/UR5_FetchPushEnv-v0')
+env = gym.make('gym_UR5_FetchPush/UR5_FetchPushEnv-v0', render=True)
 
 # Reset the environment
 observation = env.reset()
@@ -65,7 +65,28 @@ mpirun -np 8 python -u train.py --save-dir saved_models/UR5_FetchPush 2>&1 | tee
 
 Check ```arguments.py``` for more info about flags and options
 
+### Play Demo
+```bash
+python demo.py --demo-length 10
+```
 
+### Collect dataset for offline RL
+To collect dataset in D4RL format using pretrained DDPG+HER. By default it will collect >800.000 transitions with 'observations', 'actions', 'rewards', 'next_observations', 'terminals'
+```bash
+python create_dataset.py
+```
+
+## Results
+### Training Performance
+It was plotted by using 600 epochs. 
+
+<img src="figures/UR5_FetchPush_results.png" alt="UR5_FetchPush_results " width="500"/>
+
+### Demo:
+
+UR5_FetchPush| 
+-----------------------
+![](figures/UR5_FetchPUSH.gif)|
 <!-- ## Acknowledgement:
 - [Openai Baselines](https://github.com/openai/baselines)
 

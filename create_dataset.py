@@ -1,7 +1,8 @@
 import torch
 from rl_modules.models import actor
 from arguments import get_args
-import gymnasium as gym
+import gym
+import gym_UR5_FetchPush
 import numpy as np
 
 # process the inputs
@@ -17,12 +18,12 @@ def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
 if __name__ == '__main__':
     args = get_args()
     # load the model param
-    model_path = args.save_dir + args.env_name + '/model.pt'
+    model_path = 'saved_models/UR5_FetchPush/model_best.pt'
     o_mean, o_std, g_mean, g_std, model = torch.load(model_path, map_location=lambda storage, loc: storage)
     # create the environment
-    env = gym.make(args.env_name)#, render_mode="human")
+    env = gym.make('gym_UR5_FetchPush/UR5_FetchPushEnv-v0', render=False)
     # get the env param
-    observation, _ = env.reset()
+    observation = env.reset()
     # get the environment params
     env_params = {'obs': observation['observation'].shape[0], 
                   'goal': observation['desired_goal'].shape[0], 
@@ -42,9 +43,10 @@ if __name__ == '__main__':
     terminals_ = []
     truncations_ = []
 
-    dataset_length = 15_000
+    dataset_length = 18_800
+    success_episodes = 0
     for i in range(dataset_length):
-        observation, _ = env.reset()
+        observation = env.reset()
         # start to do the demo
         # obs = observation['observation']
         g = observation['desired_goal']
@@ -55,8 +57,10 @@ if __name__ == '__main__':
                 pi = actor_network(inputs)
             action = pi.detach().numpy().squeeze()
             # put actions into the environment
-            observation_new, reward, terminated, truncated,info = env.step(action)
-            done = terminated or truncated
+            observation_new, reward, done ,info = env.step(action)
+            if done:
+                break
+            # done = terminated or truncated
             #add to dataset
             observations_.append(np.concatenate((observation['observation'],
                                                  observation['desired_goal'],
@@ -69,7 +73,13 @@ if __name__ == '__main__':
             terminals_.append(done)
             # truncations_.append(trunc)
             observation = observation_new
+        if info['is_success'] == 1.0:
+            success_episodes += 1
         print('the episode is: {}, is success: {}'.format(i, info['is_success']))
+
+    print('******'*10)
+    print(f"Success episodes: {success_episodes} out of {dataset_length}, success rate = {success_episodes/dataset_length}")
+    print('******'*10)
 
     dataset = {
             'observations': np.array(observations_),
@@ -79,4 +89,4 @@ if __name__ == '__main__':
             'terminals': np.array(terminals_),
             # 'truncations': np.array(truncations_)
         }
-    np.save('datasets/FetchPickAndPlaceDense.npy', dataset)
+    np.save('datasets/UR5_FetchPush.npy', dataset)
