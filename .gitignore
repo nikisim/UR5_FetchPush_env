@@ -4,8 +4,8 @@ __pycache__/
 *$py.class
 
 wandb/
-# saved_models/*
-# !saved_models/UR5_FetchPush
+saved_models/*
+!saved_models/UR5_FetchPush
 datasets/
 *.log
 *.ipynb
@@ -120,7 +120,6 @@ venv.bak/
 #saved_model
 *.pth
 
-*.pt
 
 *.log
 
