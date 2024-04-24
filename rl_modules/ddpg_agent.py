@@ -17,9 +17,9 @@ ddpg with HER (MPI-version)
 """
 
 # wandb params
-project: str = "UR5_FetchPush"
+project: str = "UR5_FetchReach"
 group: str = "DDPG_HER"
-name: str = "FetchPush"
+name: str = "FetchPush_new_reward"
 
 class ddpg_agent:
     def __init__(self, args, env, env_params):
@@ -86,7 +86,7 @@ class ddpg_agent:
                     # reset the rollouts
                     ep_obs, ep_ag, ep_g, ep_actions = [], [], [], []
                     # reset the environment
-                    observation = self.env.reset()
+                    observation, _ = self.env.reset()
                     obs = observation['observation']
                     ag = observation['achieved_goal']
                     g = observation['desired_goal']
@@ -97,7 +97,7 @@ class ddpg_agent:
                             pi = self.actor_network(input_tensor)
                             action = self._select_actions(pi)
                         # feed the actions into the environment
-                        observation_new, _, _, info = self.env.step(action)
+                        observation_new, _, terminated, truncated, info = self.env.step(action)
                         obs_new = observation_new['observation']
                         ag_new = observation_new['achieved_goal']
                         # append rollouts
@@ -273,7 +273,7 @@ class ddpg_agent:
         total_success_rate = []
         for _ in range(self.args.n_test_rollouts):
             per_success_rate = []
-            observation = self.env.reset()
+            observation, _ = self.env.reset()
             obs = observation['observation']
             g = observation['desired_goal']
             for _ in range(self.env_params['max_timesteps']):
@@ -282,7 +282,7 @@ class ddpg_agent:
                     pi = self.actor_network(input_tensor)
                     # convert the actions
                     actions = pi.detach().cpu().numpy().squeeze()
-                observation_new, _, _, info = self.env.step(actions)
+                observation_new, _, truncated, terminated, info = self.env.step(actions)
                 obs = observation_new['observation']
                 g = observation_new['desired_goal']
                 per_success_rate.append(info['is_success'])

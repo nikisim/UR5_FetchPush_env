@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+./vscode
 wandb/
 saved_models/*
 !saved_models/UR5_FetchPush

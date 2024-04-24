@@ -20,7 +20,7 @@ def goal_distance(goal_a, goal_b):
 
 class UR5_FetchPushEnv(gym.Env):
 
-    SIMULATION_STEP_DELAY = 1 / 240.
+    SIMULATION_STEP_DELAY = 1 / 360.
 
     def __init__(self, render=False) -> None:
         super(UR5_FetchPushEnv, self).__init__()
@@ -55,7 +55,7 @@ class UR5_FetchPushEnv(gym.Env):
         # self.yawId = p.addUserDebugParameter("yaw", -np.pi/2, np.pi/2, np.pi/2)
         # self.gripper_opening_length_control = p.addUserDebugParameter("gripper_opening_length", 0, 0.085, 0.04)
 
-        self.boxID = p.loadURDF("./urdf/simple-table.urdf",
+        self.boxID = p.loadURDF("/home/nikisim/Mag_diplom/FetchSlide/hindsight-experience-replay/urdf/simple-table.urdf",
                                 [0.0, 0.0, 0.0])
                                 # p.getQuaternionFromEuler([0, 1.5706453, 0]),
                                 # p.getQuaternionFromEuler([0, 0, 0]),
@@ -64,7 +64,7 @@ class UR5_FetchPushEnv(gym.Env):
 
         # Load the puck URDF
         # Adjust the basePosition so the puck is on the table. For example, if the table height is 0.75m, you might set z to 0.76m.
-        self.puckId = p.loadURDF("./urdf/puck.urdf", basePosition=[0, 0.1, 0.25])
+        self.puckId = p.loadURDF("/home/nikisim/Mag_diplom/FetchSlide/hindsight-experience-replay/urdf/puck.urdf", basePosition=[0, 0.1, 0.25])
 
         table_size = (0.5, 0.5)  # Length and width of the table
         table_height = 0.03 + 0.05 / 2
@@ -81,6 +81,9 @@ class UR5_FetchPushEnv(gym.Env):
 
         # For calculating the reward
         self.distance_threshold = 0.05
+
+        self._max_episode_steps = 50
+        self._elapsed_steps = None
 
         self.seed()
         obs = self._get_obs()
@@ -140,21 +143,27 @@ class UR5_FetchPushEnv(gym.Env):
         self.robot.move_gripper(action[-1])
         for _ in range(120):  # Wait for a few steps
             self.step_simulation()
+        
+        truncation = False
 
         obs = self._get_obs()
         info = {}
         info['is_success'] = self._is_success(obs['achieved_goal'], self.goal)
         if self._check_done(obs) == False:
             if info['is_success']:
-                done = True
+                termination = True
             else:
-                done = False
+                termination = False
         else:
-            done = self._check_done(obs)
+            termination = self._check_done(obs)
 
         reward = self.compute_reward(obs['achieved_goal'], self.goal, info)
 
-        return obs, reward, done, info
+        self._elapsed_steps += 1
+        if self._elapsed_steps >= self._max_episode_steps:
+            truncation = True
+
+        return obs, reward, termination, truncation, info
 
     # Function to calculate Euclidean distance
     def euclidean_distance(self, position1, position2):
@@ -251,6 +260,7 @@ class UR5_FetchPushEnv(gym.Env):
         return done
 
     def reset(self):
+        self._elapsed_steps = 0
         self.robot.reset()
         self.is_success = False
 
@@ -262,7 +272,7 @@ class UR5_FetchPushEnv(gym.Env):
             self.goal = self._sample_goal().copy()
             self.puck_pos =  self._sample_puck_pos().copy()
             obs = self._get_obs()
-        return obs
+        return obs, {}
 
     def close(self):
         p.disconnect(self.physicsClient)
