@@ -18,7 +18,7 @@ def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
 if __name__ == '__main__':
     args = get_args()
     # load the model param
-    model_path = 'saved_models/UR5_FetchReach_new_reward/FetchReach-v1/model_best.pt'
+    model_path = 'saved_models/UR5_FetchReach_test_action/FetchReach-v1/model_best.pt'
     o_mean, o_std, g_mean, g_std, model = torch.load(model_path, map_location=lambda storage, loc: storage)
     # create the environment
     env = gym.make('gym_UR5_FetchReach/UR5_FetchReachEnv-v0', render=False)
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     terminals_ = []
     truncations_ = []
 
-    dataset_length = 25_000
+    dataset_length = 15_000
     success_episodes = 0
     for i in range(dataset_length):
         observation, _ = env.reset()
@@ -91,4 +91,4 @@ if __name__ == '__main__':
             'terminals': np.array(terminals_),
             # 'truncations': np.array(truncations_)
         }
-    np.save('datasets/UR5_FetchReach_new_reward.npy', dataset)
+    np.save('datasets/UR5_FetchReach_test_action.npy', dataset)

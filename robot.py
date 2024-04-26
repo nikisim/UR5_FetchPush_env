@@ -141,7 +141,9 @@ class RobotBase(object):
             positions.append(pos)
             velocities.append(vel)
         ee_pos = p.getLinkState(self.id, self.eef_id)[0]
-        return dict(positions=positions, velocities=velocities, ee_pos=ee_pos)
+        eef_state = p.getLinkState(self.id, self.eef_id, computeLinkVelocity=1)
+        eef_linear_velocity = eef_state[6]  # World linear velocity of the end effector
+        return dict(positions=positions, velocities=velocities, ee_pos=ee_pos, ee_vel=eef_linear_velocity)
 
 
 class Panda(RobotBase):

@@ -19,7 +19,7 @@ def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
 if __name__ == '__main__':
     args = get_args()
     # load the model param
-    model_path = 'saved_models/UR5_FetchReach_new_reward/FetchReach-v1/model_best.pt'
+    model_path = 'saved_models/UR5_FetchReach_test_action/FetchReach-v1/model_best.pt'
     o_mean, o_std, g_mean, g_std, model = torch.load(model_path, map_location=lambda storage, loc: storage)
     # create the environment
     env = gym.make('gym_UR5_FetchReach/UR5_FetchReachEnv-v0', render=True)
@@ -52,7 +52,7 @@ if __name__ == '__main__':
             print("Action,", action)
             # put actions into the environment
             observation_new, reward, truncated, terminanted, info = env.step(action)
-            print("Reward,", reward)
+            # print("Reward,", reward)
             done = truncated or terminanted
             obs = observation_new['observation']
             # if done:

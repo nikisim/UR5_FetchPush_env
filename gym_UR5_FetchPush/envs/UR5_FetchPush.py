@@ -20,7 +20,7 @@ def goal_distance(goal_a, goal_b):
 
 class UR5_FetchPushEnv(gym.Env):
 
-    SIMULATION_STEP_DELAY = 1 / 360.
+    SIMULATION_STEP_DELAY = 1 / 500.
 
     def __init__(self, render=False) -> None:
         super(UR5_FetchPushEnv, self).__init__()
@@ -45,6 +45,7 @@ class UR5_FetchPushEnv(gym.Env):
 
         self.robot.load()
         self.robot.step_simulation = self.step_simulation
+        p.setTimeStep(1/500.)
 
         # custom sliders to tune parameters (name of the parameter,range,initial value)
         # self.xin = p.addUserDebugParameter("x", -0.224, 0.224, 0)
@@ -87,7 +88,7 @@ class UR5_FetchPushEnv(gym.Env):
 
         self.seed()
         obs = self._get_obs()
-        self.action_space = spaces.Box(-0.15, 0.15, shape=(2,), dtype='float32')
+        self.action_space = spaces.Box(-1, 1, shape=(2,), dtype='float32')
         self.observation_space = spaces.Dict(dict(
             desired_goal=spaces.Box(-np.inf, np.inf, shape=obs['achieved_goal'].shape, dtype='float32'),
             achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs['achieved_goal'].shape, dtype='float32'),
@@ -137,11 +138,14 @@ class UR5_FetchPushEnv(gym.Env):
 
         # print("Action:",action)
         new_action = np.clip(action, self.action_space.low, self.action_space.high)
+        new_action *= 0.2
         rpy = np.array([0.02,0,math.pi/2,math.pi/2,0])
         action = np.concatenate((new_action,rpy))
-        self.robot.move_ee(action[:-1], 'end')
-        self.robot.move_gripper(action[-1])
-        for _ in range(120):  # Wait for a few steps
+        
+        # Step the simulation 20 times to maintain the control frequency of 25 Hz
+        for _ in range(20):   # 20 simulation steps with a time step of 0.002 seconds
+            self.robot.move_ee(action[:-1], 'end')
+            self.robot.move_gripper(action[-1])
             self.step_simulation()
         
         truncation = False
@@ -204,6 +208,38 @@ class UR5_FetchPushEnv(gym.Env):
     #     # print(obs)
     #     return obs
 
+    def calculate_rel_linear_vel(self):
+        # Get the state of the end effector
+        eef_state = p.getLinkState(self.robot.id, self.robot.eef_id, computeLinkVelocity=1)
+        eef_pos = eef_state[0]  # World position of the end effector
+        eef_orn = eef_state[1]  # World orientation of the end effector (as a quaternion)
+        eef_linear_velocity = eef_state[6]  # World linear velocity of the end effector
+
+        # Get the state of the puck
+        puck_state = p.getBasePositionAndOrientation(self.puckId)
+        puck_pos = puck_state[0]  # World position of the puck
+        puck_orn = puck_state[1]  # World orientation of the puck (as a quaternion)
+        puck_velocity = p.getBaseVelocity(self.puckId)
+        puck_linear_velocity = puck_velocity[0]  # World linear velocity of the puck
+
+        # Compute the relative linear velocity in the world frame
+        relative_linear_velocity_world = tuple(puck_linear_velocity[i] - eef_linear_velocity[i] for i in range(3))
+
+        # Transform the relative velocity to the end effector's local frame
+        # First, get the inverse transformation matrix of the end effector
+        eef_inverse_transform_matrix = p.invertTransform(eef_pos, eef_orn)
+
+        # Now, apply the inverse transformation to the relative linear velocity
+        _, relative_linear_velocity_local = p.multiplyTransforms(
+            positionA=[0, 0, 0],
+            orientationA=eef_inverse_transform_matrix[1],
+            positionB=relative_linear_velocity_world,
+            orientationB=p.getQuaternionFromEuler([0, 0, 0])
+        )
+
+        # The relative linear velocity in the end effector's local frame
+        return relative_linear_velocity_local
+
     def get_ee_puck_diff(self, ee_pos, puck_pos):
         """Get difference betwee end-effector and current puck position over all axes [x,y,z]
         """
@@ -227,19 +263,28 @@ class UR5_FetchPushEnv(gym.Env):
 
         diff_array = self.get_ee_puck_diff(robot_pos['ee_pos'], puck_position)
 
+        rel_linear_vel = self.calculate_rel_linear_vel()
+
         obs = np.concatenate((
             np.array(robot_pos['ee_pos'], dtype='float32'),
-            np.array(robot_pos['positions'], dtype='float32'),
-            np.array(robot_pos['velocities'], dtype='float32'),
-            np.array(diff_array, dtype='float32'),
             # current puck pos
             np.array(puck_orientation, dtype='float32'),
+            # Relative block position 
+            np.array(diff_array, dtype='float32'),
             # puck orientation in Euler angles
             np.array(puck_euler_orientation, dtype='float32'),
             # puck linear velocity
             np.array(puck_linear_velocity, dtype='float32'),
             # puck angular velocity
             np.array(puck_angular_velocity, dtype='float32'),
+            # relative puck -> end effector lin vel
+            np.array(rel_linear_vel, dtype='float32'),
+            # end effector linear velocities
+            np.array(robot_pos['ee_vel'], dtype='float32'),
+            # joint pos
+            # np.array(robot_pos['positions'], dtype='float32'),
+            # # joint vel
+            # np.array(robot_pos['velocities'], dtype='float32'),
             )
         )
         achieved_goal = np.array(puck_position).copy()
