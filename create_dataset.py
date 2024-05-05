@@ -2,8 +2,9 @@ import torch
 from rl_modules.models import actor
 from arguments import get_args
 import gym
-import gym_UR5_FetchReach
+import gym_UR5_FetchPush
 import numpy as np
+import os
 
 # process the inputs
 def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
@@ -18,10 +19,10 @@ def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
 if __name__ == '__main__':
     args = get_args()
     # load the model param
-    model_path = 'saved_models/UR5_FetchReach_test_action/FetchReach-v1/model_best.pt'
+    model_path = 'saved_models/UR5_FetchPush_new_4/FetchReach-v1/model_best.pt'
     o_mean, o_std, g_mean, g_std, model = torch.load(model_path, map_location=lambda storage, loc: storage)
     # create the environment
-    env = gym.make('gym_UR5_FetchReach/UR5_FetchReachEnv-v0', render=False)
+    env = gym.make('gym_UR5_FetchPush/UR5_FetchPushEnv-v0', render=False)
     # get the env param
     observation, _ = env.reset()
     # get the environment params
@@ -43,14 +44,14 @@ if __name__ == '__main__':
     terminals_ = []
     truncations_ = []
 
-    dataset_length = 15_000
+    dataset_length = 20_000
     success_episodes = 0
     for i in range(dataset_length):
         observation, _ = env.reset()
         # start to do the demo
         # obs = observation['observation']
         g = observation['desired_goal']
-        for t in range(30):
+        for t in range(env.get_max_steps()):
             # env.render()
             inputs = process_inputs(observation['observation'], g, o_mean, o_std, g_mean, g_std, args)
             with torch.no_grad():
@@ -59,6 +60,7 @@ if __name__ == '__main__':
             # put actions into the environment
             observation_new, reward, terminated, truncated ,info = env.step(action)
             done = terminated or truncated
+            # done = terminated or truncated
             #add to dataset
             observations_.append(np.concatenate((observation['observation'],
                                                  observation['desired_goal'],
@@ -71,9 +73,8 @@ if __name__ == '__main__':
             terminals_.append(done)
             # truncations_.append(trunc)
             observation = observation_new
-            # done = terminated or truncated
-            # if done:
-            #     break
+            if done:
+                break
         if info['is_success'] == 1.0:
             success_episodes += 1
         print('the episode is: {}, is success: {}'.format(i, info['is_success']))
@@ -91,4 +92,7 @@ if __name__ == '__main__':
             'terminals': np.array(terminals_),
             # 'truncations': np.array(truncations_)
         }
-    np.save('datasets/UR5_FetchReach_test_action.npy', dataset)
+    path = 'datasets/new_test'
+    if not os.path.exists(path):
+        os.makedirs(path)
+    np.save('datasets/new_test/UR5_FetchPush_new_4.npy', dataset)

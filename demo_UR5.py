@@ -2,7 +2,7 @@ import torch
 from rl_modules.models import actor
 from arguments import get_args
 import gym
-import gym_UR5_FetchReach
+import gym_UR5_FetchPush
 
 import numpy as np
 
@@ -19,11 +19,11 @@ def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
 if __name__ == '__main__':
     args = get_args()
     # load the model param
-    model_path = 'saved_models/UR5_FetchReach_test_action/FetchReach-v1/model_best.pt'
+    model_path = 'saved_models/UR5_FetchPush_new_8/FetchReach-v1/model_best.pt'
     o_mean, o_std, g_mean, g_std, model = torch.load(model_path, map_location=lambda storage, loc: storage)
     # create the environment
-    env = gym.make('gym_UR5_FetchReach/UR5_FetchReachEnv-v0', render=True)
-    # env = gym.wrappers.RecordVideo(env, f"videos/FetchReach")#, episode_trigger = lambda x: x % 100 == 0)
+    env = gym.make('gym_UR5_FetchPush/UR5_FetchPushEnv-v0', render=True)
+    # env = gym.wrappers.RecordVideo(env, f"videos/FetchPush")#, episode_trigger = lambda x: x % 100 == 0)
 
     # get the env param
     observation, _ = env.reset()
@@ -43,20 +43,20 @@ if __name__ == '__main__':
         # start to do the demo
         obs = observation['observation']
         g = observation['desired_goal']
-        for t in range(30):
+        for t in range(70):
             # env.render()
             inputs = process_inputs(obs, g, o_mean, o_std, g_mean, g_std, args)
             with torch.no_grad():
                 pi = actor_network(inputs)
             action = pi.detach().numpy().squeeze()
-            print("Action,", action)
+            # print("Action,", action)
             # put actions into the environment
             observation_new, reward, truncated, terminanted, info = env.step(action)
             # print("Reward,", reward)
             done = truncated or terminanted
             obs = observation_new['observation']
-            # if done:
-            #     break
+            if done:
+                break
             
         print('the episode is: {}, is success: {}'.format(i, info['is_success']))
         if info['is_success'] == 1.0:

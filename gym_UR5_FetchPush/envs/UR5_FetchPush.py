@@ -83,17 +83,20 @@ class UR5_FetchPushEnv(gym.Env):
         # For calculating the reward
         self.distance_threshold = 0.05
 
-        self._max_episode_steps = 50
+        self._max_episode_steps = 70
         self._elapsed_steps = None
 
         self.seed()
         obs = self._get_obs()
-        self.action_space = spaces.Box(-1, 1, shape=(2,), dtype='float32')
+        self.action_space = spaces.Box(-0.15, 0.15, shape=(2,), dtype='float32')
         self.observation_space = spaces.Dict(dict(
             desired_goal=spaces.Box(-np.inf, np.inf, shape=obs['achieved_goal'].shape, dtype='float32'),
             achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs['achieved_goal'].shape, dtype='float32'),
             observation=spaces.Box(-np.inf, np.inf, shape=obs['observation'].shape, dtype='float32'),
         ))
+    
+    def get_max_steps(self):
+        return self._max_episode_steps
 
     # Function to generate a random position on the table
     def random_position_on_table(self, table_length, table_width, table_height):
@@ -138,14 +141,15 @@ class UR5_FetchPushEnv(gym.Env):
 
         # print("Action:",action)
         new_action = np.clip(action, self.action_space.low, self.action_space.high)
-        new_action *= 0.2
+        # new_action *= 0.2
         rpy = np.array([0.02,0,math.pi/2,math.pi/2,0])
         action = np.concatenate((new_action,rpy))
+
+        self.robot.move_ee(action[:-1], 'end')
+        self.robot.move_gripper(action[-1])
         
         # Step the simulation 20 times to maintain the control frequency of 25 Hz
-        for _ in range(20):   # 20 simulation steps with a time step of 0.002 seconds
-            self.robot.move_ee(action[:-1], 'end')
-            self.robot.move_gripper(action[-1])
+        for _ in range(60):   # 20 simulation steps with a time step of 0.002 seconds
             self.step_simulation()
         
         truncation = False
@@ -282,9 +286,9 @@ class UR5_FetchPushEnv(gym.Env):
             # end effector linear velocities
             np.array(robot_pos['ee_vel'], dtype='float32'),
             # joint pos
-            # np.array(robot_pos['positions'], dtype='float32'),
-            # # joint vel
-            # np.array(robot_pos['velocities'], dtype='float32'),
+            np.array(robot_pos['positions'], dtype='float32'),
+            # joint vel
+            np.array(robot_pos['velocities'], dtype='float32'),
             )
         )
         achieved_goal = np.array(puck_position).copy()
