@@ -60,7 +60,7 @@ Make sure to install these dependencies before using the environment.
 ## Instruction to train DDPG+HER for UR5_FetchPush
 If you want to use GPU, just add the flag `--cuda` **(Not Recommended, Better Use CPU)**.
 ```bash
-mpirun -np 8 python -u train_UR5.py --save-dir saved_models/UR5_FetchPush 2>&1 | tee push_UR5.log
+mpirun -np 16 python -u train_UR5.py --num-workers 12 --n-epochs 800 --save-dir saved_models/UR5_FetcReach 2>&1 | tee reach_UR5.log
 ```
 
 Check ```arguments.py``` for more info about flags and options

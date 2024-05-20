@@ -145,11 +145,12 @@ class UR5_FetchPushEnv(gym.Env):
         rpy = np.array([0.02,0,math.pi/2,math.pi/2,0])
         action = np.concatenate((new_action,rpy))
 
-        self.robot.move_ee(action[:-1], 'end')
-        self.robot.move_gripper(action[-1])
+        
         
         # Step the simulation 20 times to maintain the control frequency of 25 Hz
-        for _ in range(60):   # 20 simulation steps with a time step of 0.002 seconds
+        for _ in range(20):   # 20 simulation steps with a time step of 0.002 seconds
+            self.robot.move_ee(action[:-1], 'end')
+            self.robot.move_gripper(action[-1])
             self.step_simulation()
         
         truncation = False

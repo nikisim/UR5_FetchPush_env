@@ -2,7 +2,7 @@ import torch
 from rl_modules.models import actor
 from arguments import get_args
 import gym
-import gym_UR5_FetchPush
+import gym_UR5_FetchReach
 import numpy as np
 import os
 
@@ -19,10 +19,10 @@ def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
 if __name__ == '__main__':
     args = get_args()
     # load the model param
-    model_path = 'saved_models/UR5_FetchPush_new_4/FetchReach-v1/model_best.pt'
+    model_path = '/home/nikisim/Mag_diplom/FetchSlide/hindsight-experience-replay/saved_models/new_test/UR5_FetcReach/FetchReach-v1/model_best.pt'
     o_mean, o_std, g_mean, g_std, model = torch.load(model_path, map_location=lambda storage, loc: storage)
     # create the environment
-    env = gym.make('gym_UR5_FetchPush/UR5_FetchPushEnv-v0', render=False)
+    env = gym.make('gym_UR5_FetchReach/UR5_FetchReachEnv-v0', render=False)
     # get the env param
     observation, _ = env.reset()
     # get the environment params
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     terminals_ = []
     truncations_ = []
 
-    dataset_length = 20_000
+    dataset_length = 50_000
     success_episodes = 0
     for i in range(dataset_length):
         observation, _ = env.reset()
@@ -95,4 +95,4 @@ if __name__ == '__main__':
     path = 'datasets/new_test'
     if not os.path.exists(path):
         os.makedirs(path)
-    np.save('datasets/new_test/UR5_FetchPush_new_4.npy', dataset)
+    np.save('datasets/new_test/UR5_FetchReach_last_test.npy', dataset)

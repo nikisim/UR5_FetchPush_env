@@ -2,7 +2,7 @@ import torch
 from rl_modules.models import actor
 from arguments import get_args
 import gym
-import gym_UR5_FetchPush
+import gym_UR5_FetchReach
 
 import numpy as np
 
@@ -19,11 +19,11 @@ def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
 if __name__ == '__main__':
     args = get_args()
     # load the model param
-    model_path = 'saved_models/UR5_FetchPush_new_8/FetchReach-v1/model_best.pt'
+    model_path = '/home/nikisim/Mag_diplom/FetchSlide/hindsight-experience-replay/saved_models/new_test/UR5_FetcReach/FetchReach-v1/model_best.pt'
     o_mean, o_std, g_mean, g_std, model = torch.load(model_path, map_location=lambda storage, loc: storage)
     # create the environment
-    env = gym.make('gym_UR5_FetchPush/UR5_FetchPushEnv-v0', render=True)
-    # env = gym.wrappers.RecordVideo(env, f"videos/FetchPush")#, episode_trigger = lambda x: x % 100 == 0)
+    env = gym.make('gym_UR5_FetchReach/UR5_FetchReachEnv-v0', render=True)
+    # env = gym.wrappers.RecordVideo(env, f"videos/FetchReach")#, episode_trigger = lambda x: x % 100 == 0)
 
     # get the env param
     observation, _ = env.reset()
