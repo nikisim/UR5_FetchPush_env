@@ -19,7 +19,7 @@ def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
 if __name__ == '__main__':
     args = get_args()
     # load the model param
-    model_path = '/home/nikisim/Mag_diplom/FetchSlide/hindsight-experience-replay/saved_models/new_test/UR5_FetcReach/FetchReach-v1/model_best.pt'
+    model_path = '/home/nikisim/Mag_diplom/FetchSlide/hindsight-experience-replay/saved_models/sim_as_real/UR5_FetcReach/FetchReach-v1/model_best.pt'
     o_mean, o_std, g_mean, g_std, model = torch.load(model_path, map_location=lambda storage, loc: storage)
     # create the environment
     env = gym.make('gym_UR5_FetchReach/UR5_FetchReachEnv-v0', render=True)
@@ -49,7 +49,7 @@ if __name__ == '__main__':
             with torch.no_grad():
                 pi = actor_network(inputs)
             action = pi.detach().numpy().squeeze()
-            # print("Action,", action)
+            print("Action,", action)
             # put actions into the environment
             observation_new, reward, truncated, terminanted, info = env.step(action)
             # print("Reward,", reward)

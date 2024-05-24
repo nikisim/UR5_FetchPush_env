@@ -1,5 +1,6 @@
 import numpy as np
-import gymnasium as gym
+import gym
+import gym_UR5_FetchReach
 import os, sys
 from arguments import get_args
 from mpi4py import MPI
@@ -25,7 +26,7 @@ def get_env_params(env):
 
 def launch(args):
     # create the ddpg_agent
-    env = gym.make('FetchReachDense-v2', render_mode='rgb_array')
+    env = gym.make('gym_UR5_FetchReach/UR5_FetchReachEnv-v0', render=False)
     # set random seeds for reproduce
     # env.seed(args.seed + MPI.COMM_WORLD.Get_rank())
     random.seed(args.seed + MPI.COMM_WORLD.Get_rank())

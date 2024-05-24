@@ -114,10 +114,10 @@ class RobotBase(object):
 
         dx = action[0]
         dy = action[1]
-        dz = 0
+        dz = action[2]
         if control_method == 'end':
             roll, pitch, yaw = action[3:]
-            pos = (x+dx, y+dy, 0.22)
+            pos = (x+dx, y+dy, z+dz)
             orn = p.getQuaternionFromEuler((roll, pitch, yaw))
             joint_poses = p.calculateInverseKinematics(self.id, self.eef_id, pos, orn,
                                                        self.arm_lower_limits, self.arm_upper_limits, self.arm_joint_ranges, self.arm_rest_poses,

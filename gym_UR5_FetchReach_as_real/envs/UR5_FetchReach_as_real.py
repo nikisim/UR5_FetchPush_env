@@ -18,12 +18,12 @@ def goal_distance(goal_a, goal_b):
     return np.linalg.norm(goal_a - goal_b, axis=-1)
 
 
-class UR5_FetchReachEnv(gym.Env):
+class UR5_FetchReachEnv_as_real(gym.Env):
 
     SIMULATION_STEP_DELAY = 1 / 250.
 
     def __init__(self, render=False) -> None:
-        super(UR5_FetchReachEnv, self).__init__()
+        super(UR5_FetchReachEnv_as_real, self).__init__()
 
         camera = Camera((1, 1, 1),
                         (0, 0, 0),
@@ -47,19 +47,6 @@ class UR5_FetchReachEnv(gym.Env):
         self.robot.step_simulation = self.step_simulation
         p.setTimeStep(1/250.)
 
-        # custom sliders to tune parameters (name of the parameter,range,initial value)
-        # self.xin = p.addUserDebugParameter("x", -0.224, 0.224, 0)
-        # self.yin = p.addUserDebugParameter("y", -0.224, 0.224, 0)
-        # self.zin = p.addUserDebugParameter("z", 0, 1., 0.5)
-        # self.rollId = p.addUserDebugParameter("roll", -3.14, 3.14, 0)
-        # self.pitchId = p.addUserDebugParameter("pitch", -3.14, 3.14, np.pi/2)
-        # self.yawId = p.addUserDebugParameter("yaw", -np.pi/2, np.pi/2, np.pi/2)
-        # self.gripper_opening_length_control = p.addUserDebugParameter("gripper_opening_length", 0, 0.085, 0.04)
-
-        # Load the puck URDF
-        # Adjust the basePosition so the puck is on the table. For example, if the table height is 0.75m, you might set z to 0.76m.
-        # self.puckId = p.loadURDF("/home/nikisim/Mag_diplom/FetchSlide/hindsight-experience-replay/urdf/puck.urdf", basePosition=[0, 0.1, 0.25])
-
         table_size = (0.5, 0.5)  # Length and width of the table
         table_height = 0.03 + 0.05 / 2
 
@@ -69,14 +56,11 @@ class UR5_FetchReachEnv(gym.Env):
         target_visual_shape = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=0.02, rgbaColor=[1, 0, 0, 1])
         self.target_body = p.createMultiBody(baseMass=0, baseVisualShapeIndex=target_visual_shape, basePosition=target_position)
 
-        # Adjust friction properties to make the puck slide more realistically
-        # p.changeDynamics(self.puckId , -1, lateralFriction=0.5)
-
 
         # For calculating the reward
         self.distance_threshold = 0.05
 
-        self._max_episode_steps = 50
+        self._max_episode_steps = 300
         self._elapsed_steps = None
 
         self.seed()
@@ -93,14 +77,9 @@ class UR5_FetchReachEnv(gym.Env):
 
     # Function to generate a random position on the table
     def random_position_on_table(self, table_length, table_width, table_height):
-        # old
-        # x = np.random.uniform(-0.2, 0.2)
-        # y = np.random.uniform(-0.2, 0.2)
-        # z = np.random.uniform(0.2, 0.5) # # Height of the table surface
-
-        x = np.random.uniform(-0.1, 0.3)
-        y = np.random.uniform(-0.3, -0.55)
-        z = np.random.uniform(0.35, 0.58) # # Height of the table surface
+        x = np.random.uniform(-0.2, 0.2)
+        y = np.random.uniform(-0.2, 0.2)
+        z = np.random.uniform(0.2, 0.5) # # Height of the table surface
         return [x, y, z]
 
     def seed(self, seed=None):

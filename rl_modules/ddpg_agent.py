@@ -17,7 +17,7 @@ ddpg with HER (MPI-version)
 """
 
 # wandb params
-project: str = "FetchReach_DDPG"
+project: str = "FetchReach_DDPG_as_real"
 group: str = "DDPG_HER"
 name: str = "FetchReach"
 

@@ -19,7 +19,7 @@ def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
 if __name__ == '__main__':
     args = get_args()
     # load the model param
-    model_path = '/home/nikisim/Mag_diplom/FetchSlide/hindsight-experience-replay/saved_models/new_test/UR5_FetcReach/FetchReach-v1/model_best.pt'
+    model_path = '/home/nikisim/Mag_diplom/FetchSlide/hindsight-experience-replay/saved_models/sim_as_real/UR5_FetcReach_0_0/FetchReach-v1/model_best.pt'
     o_mean, o_std, g_mean, g_std, model = torch.load(model_path, map_location=lambda storage, loc: storage)
     # create the environment
     env = gym.make('gym_UR5_FetchReach/UR5_FetchReachEnv-v0', render=False)
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     terminals_ = []
     truncations_ = []
 
-    dataset_length = 50_000
+    dataset_length = 1_000
     success_episodes = 0
     for i in range(dataset_length):
         observation, _ = env.reset()
@@ -92,7 +92,7 @@ if __name__ == '__main__':
             'terminals': np.array(terminals_),
             # 'truncations': np.array(truncations_)
         }
-    path = 'datasets/new_test'
+    path = 'datasets/sim_as_real'
     if not os.path.exists(path):
         os.makedirs(path)
-    np.save('datasets/new_test/UR5_FetchReach_last_test.npy', dataset)
+    np.save('datasets/sim_as_real/UR5_FetchReach_0_0_super_small.npy', dataset)
