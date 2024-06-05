@@ -18,12 +18,12 @@ def goal_distance(goal_a, goal_b):
     return np.linalg.norm(goal_a - goal_b, axis=-1)
 
 
-class UR5_FetchReachEnv_as_real(gym.Env):
+class UR5_FetchReach_as_realEnv(gym.Env):
 
     SIMULATION_STEP_DELAY = 1 / 250.
 
     def __init__(self, render=False) -> None:
-        super(UR5_FetchReachEnv_as_real, self).__init__()
+        super(UR5_FetchReach_as_realEnv, self).__init__()
 
         camera = Camera((1, 1, 1),
                         (0, 0, 0),

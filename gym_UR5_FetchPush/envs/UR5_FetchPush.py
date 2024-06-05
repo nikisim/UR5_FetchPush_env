@@ -273,17 +273,17 @@ class UR5_FetchPushEnv(gym.Env):
         obs = np.concatenate((
             np.array(robot_pos['ee_pos'], dtype='float32'),
             # current puck pos
-            np.array(puck_orientation, dtype='float32'),
+            np.array(puck_position, dtype='float32'),
             # Relative block position 
             np.array(diff_array, dtype='float32'),
             # puck orientation in Euler angles
-            np.array(puck_euler_orientation, dtype='float32'),
-            # puck linear velocity
-            np.array(puck_linear_velocity, dtype='float32'),
-            # puck angular velocity
-            np.array(puck_angular_velocity, dtype='float32'),
-            # relative puck -> end effector lin vel
-            np.array(rel_linear_vel, dtype='float32'),
+            # np.array(puck_euler_orientation, dtype='float32'),
+            # # puck linear velocity
+            # np.array(puck_linear_velocity, dtype='float32'),
+            # # puck angular velocity
+            # np.array(puck_angular_velocity, dtype='float32'),
+            # # relative puck -> end effector lin vel
+            # np.array(rel_linear_vel, dtype='float32'),
             # end effector linear velocities
             np.array(robot_pos['ee_vel'], dtype='float32'),
             # joint pos

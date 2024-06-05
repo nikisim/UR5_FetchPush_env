@@ -17,9 +17,9 @@ ddpg with HER (MPI-version)
 """
 
 # wandb params
-project: str = "FetchReach_DDPG_as_real"
+project: str = "FetchPush_DDPG_puck_pos"
 group: str = "DDPG_HER"
-name: str = "FetchReach"
+name: str = "FetchPush"
 
 class ddpg_agent:
     def __init__(self, args, env, env_params):
