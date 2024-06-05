@@ -1,7 +1,8 @@
 # UR5_FetchPush env
-<img src="figures/UR5_FetchPUSH.gif" alt="UR5_FetchPush_sim " width="500"/>
 
-<img src="figures/ReBRAC_UR5_Real_speed.gif" alt="UR5_FetchReach_real " width="500"/>
+UR5_FetchPush| UR5_FetchReach-real| 
+-----------------------|-----------------------|
+<img src="figures/UR5_FetchPUSH.gif" alt="UR5_FetchPush_sim " width="500"/>| <img src="figures/ReBRAC_UR5_Real_speed.gif" alt="UR5_FetchReach_real " width="500"/>| 
 
 
 ## UR5 FetchPush Gym Environment
