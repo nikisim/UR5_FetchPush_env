@@ -114,10 +114,10 @@ class RobotBase(object):
 
         dx = action[0]
         dy = action[1]
-        dz = 0
+        dz = action[2]
         if control_method == 'end':
             roll, pitch, yaw = action[3:]
-            pos = (x+dx, y+dy, 0.22)
+            pos = (x+dx, y+dy, z+dz)
             orn = p.getQuaternionFromEuler((roll, pitch, yaw))
             joint_poses = p.calculateInverseKinematics(self.id, self.eef_id, pos, orn,
                                                        self.arm_lower_limits, self.arm_upper_limits, self.arm_joint_ranges, self.arm_rest_poses,
@@ -141,7 +141,9 @@ class RobotBase(object):
             positions.append(pos)
             velocities.append(vel)
         ee_pos = p.getLinkState(self.id, self.eef_id)[0]
-        return dict(positions=positions, velocities=velocities, ee_pos=ee_pos)
+        eef_state = p.getLinkState(self.id, self.eef_id, computeLinkVelocity=1)
+        eef_linear_velocity = eef_state[6]  # World linear velocity of the end effector
+        return dict(positions=positions, velocities=velocities, ee_pos=ee_pos, ee_vel=eef_linear_velocity)
 
 
 class Panda(RobotBase):
@@ -177,7 +179,7 @@ class UR5Robotiq85(RobotBase):
         self.arm_num_dofs = 6
         self.arm_rest_poses = [-1.5690622952052096, -1.5446774605904932, 1.343946009733127, -1.3708613585093699,
                                -1.5707970583733368, 0.0009377758247187636]
-        self.id = p.loadURDF('./urdf/ur5_robotiq_85.urdf', self.base_pos, self.base_ori,
+        self.id = p.loadURDF('/home/nikisim/Mag_diplom/FetchSlide/hindsight-experience-replay/urdf/ur5_robotiq_85.urdf', self.base_pos, self.base_ori,
                              useFixedBase=True, flags=p.URDF_ENABLE_CACHED_GRAPHICS_SHAPES)
         self.gripper_range = [0, 0.085]
     

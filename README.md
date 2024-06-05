@@ -1,5 +1,9 @@
 # UR5_FetchPush env
-![](figures/UR5_FetchPUSH.gif)
+<img src="figures/UR5_FetchPUSH.gif" alt="UR5_FetchPush_sim " width="500"/>
+
+<img src="figures/ReBRAC_UR5_Real_speed.gif" alt="UR5_FetchReach_real " width="500"/>
+
+
 ## UR5 FetchPush Gym Environment
 This repository contains a custom OpenAI Gym-compatible environment for simulating a robotic manipulation task using the UR5 robotic arm. The task, named "FetchPush," involves the UR5 robot pushing an object to a target location on a flat surface. This environment is designed for research and development in the field of reinforcement learning and robotics.
 
@@ -60,10 +64,12 @@ Make sure to install these dependencies before using the environment.
 ## Instruction to train DDPG+HER for UR5_FetchPush
 If you want to use GPU, just add the flag `--cuda` **(Not Recommended, Better Use CPU)**.
 ```bash
-mpirun -np 8 python -u train.py --save-dir saved_models/UR5_FetchPush 2>&1 | tee push_UR5.log
+mpirun -np 16 python -u train_UR5.py --num-workers 12 --n-epochs 800 --save-dir saved_models/UR5_FetcReach 2>&1 | tee reach_UR5.log
 ```
 
 Check ```arguments.py``` for more info about flags and options
+
+Current success rate: ```0.8191489361702128```
 
 ### Play Demo
 ```bash
@@ -78,9 +84,12 @@ python create_dataset.py
 
 ## Results
 ### Training Performance
-It was plotted by using 600 epochs. 
+It was plotted by using 1000 epochs. 
 
-<img src="figures/UR5_FetchPush_results.png" alt="UR5_FetchPush_results " width="500"/>
+<img src="figures/FetchReach_new_vis.png" alt="UR5_FetchReach_results " width="500"/>
+
+<img src="figures/FetchPP_compare_4.png" alt="UR5_FetchPush_results " width="500"/>
+
 
 <!-- ### Demo:
 

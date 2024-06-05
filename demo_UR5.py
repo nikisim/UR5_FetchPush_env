@@ -2,7 +2,7 @@ import torch
 from rl_modules.models import actor
 from arguments import get_args
 import gym
-import gym_UR5_FetchPush
+import gym_UR5_FetchReach
 
 import numpy as np
 
@@ -19,14 +19,14 @@ def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
 if __name__ == '__main__':
     args = get_args()
     # load the model param
-    model_path = 'saved_models/UR5_FetchPush/model_best.pt'
+    model_path = '/home/nikisim/Mag_diplom/FetchSlide/hindsight-experience-replay/saved_models/sim_as_real/UR5_FetcReach/FetchReach-v1/model_best.pt'
     o_mean, o_std, g_mean, g_std, model = torch.load(model_path, map_location=lambda storage, loc: storage)
     # create the environment
-    env = gym.make('gym_UR5_FetchPush/UR5_FetchPushEnv-v0', render=True)
+    env = gym.make('gym_UR5_FetchReach/UR5_FetchReachEnv-v0', render=True)
     # env = gym.wrappers.RecordVideo(env, f"videos/FetchReach")#, episode_trigger = lambda x: x % 100 == 0)
 
     # get the env param
-    observation = env.reset()
+    observation, _ = env.reset()
     # get the environment params
     env_params = {'obs': observation['observation'].shape[0], 
                   'goal': observation['desired_goal'].shape[0], 
@@ -39,18 +39,21 @@ if __name__ == '__main__':
     actor_network.eval()
     success_episodes = 0
     for i in range(args.demo_length):
-        observation = env.reset()
+        observation, _ = env.reset()
         # start to do the demo
         obs = observation['observation']
         g = observation['desired_goal']
-        for t in range(30):
+        for t in range(70):
             # env.render()
             inputs = process_inputs(obs, g, o_mean, o_std, g_mean, g_std, args)
             with torch.no_grad():
                 pi = actor_network(inputs)
             action = pi.detach().numpy().squeeze()
+            print("Action,", action)
             # put actions into the environment
-            observation_new, reward, done, info = env.step(action)
+            observation_new, reward, truncated, terminanted, info = env.step(action)
+            # print("Reward,", reward)
+            done = truncated or terminanted
             obs = observation_new['observation']
             if done:
                 break

@@ -1,0 +1,1 @@
+from gym_UR5_FetchReach_as_real.envs.UR5_FetchReach_as_real import UR5_FetchReach_as_realEnv

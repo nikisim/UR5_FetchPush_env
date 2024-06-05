@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+./vscode
 wandb/
 saved_models/*
 !saved_models/UR5_FetchPush
@@ -13,6 +14,7 @@ test.py
 train.py
 meshes/robotiq_140/
 meshes/ur5
+gym_UR5_FetchReach_as_real/
 
 # C extensions
 *.so

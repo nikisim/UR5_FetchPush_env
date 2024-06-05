@@ -2,8 +2,9 @@ import torch
 from rl_modules.models import actor
 from arguments import get_args
 import gym
-import gym_UR5_FetchPush
+import gym_UR5_FetchReach
 import numpy as np
+import os
 
 # process the inputs
 def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
@@ -18,12 +19,12 @@ def process_inputs(o, g, o_mean, o_std, g_mean, g_std, args):
 if __name__ == '__main__':
     args = get_args()
     # load the model param
-    model_path = 'saved_models/UR5_FetchPush/model_best.pt'
+    model_path = '/home/nikisim/Mag_diplom/FetchSlide/hindsight-experience-replay/saved_models/sim_as_real/UR5_FetcReach_0_0/FetchReach-v1/model_best.pt'
     o_mean, o_std, g_mean, g_std, model = torch.load(model_path, map_location=lambda storage, loc: storage)
     # create the environment
-    env = gym.make('gym_UR5_FetchPush/UR5_FetchPushEnv-v0', render=False)
+    env = gym.make('gym_UR5_FetchReach/UR5_FetchReachEnv-v0', render=False)
     # get the env param
-    observation = env.reset()
+    observation, _ = env.reset()
     # get the environment params
     env_params = {'obs': observation['observation'].shape[0], 
                   'goal': observation['desired_goal'].shape[0], 
@@ -43,23 +44,22 @@ if __name__ == '__main__':
     terminals_ = []
     truncations_ = []
 
-    dataset_length = 18_800
+    dataset_length = 1_000
     success_episodes = 0
     for i in range(dataset_length):
-        observation = env.reset()
+        observation, _ = env.reset()
         # start to do the demo
         # obs = observation['observation']
         g = observation['desired_goal']
-        for t in range(50):
+        for t in range(env.get_max_steps()):
             # env.render()
             inputs = process_inputs(observation['observation'], g, o_mean, o_std, g_mean, g_std, args)
             with torch.no_grad():
                 pi = actor_network(inputs)
             action = pi.detach().numpy().squeeze()
             # put actions into the environment
-            observation_new, reward, done ,info = env.step(action)
-            if done:
-                break
+            observation_new, reward, terminated, truncated ,info = env.step(action)
+            done = terminated or truncated
             # done = terminated or truncated
             #add to dataset
             observations_.append(np.concatenate((observation['observation'],
@@ -73,12 +73,15 @@ if __name__ == '__main__':
             terminals_.append(done)
             # truncations_.append(trunc)
             observation = observation_new
+            if done:
+                break
         if info['is_success'] == 1.0:
             success_episodes += 1
         print('the episode is: {}, is success: {}'.format(i, info['is_success']))
 
     print('******'*10)
     print(f"Success episodes: {success_episodes} out of {dataset_length}, success rate = {success_episodes/dataset_length}")
+    print(f'Dataset size = {len(actions_)}')
     print('******'*10)
 
     dataset = {
@@ -89,4 +92,7 @@ if __name__ == '__main__':
             'terminals': np.array(terminals_),
             # 'truncations': np.array(truncations_)
         }
-    np.save('datasets/UR5_FetchPush.npy', dataset)
+    path = 'datasets/sim_as_real'
+    if not os.path.exists(path):
+        os.makedirs(path)
+    np.save('datasets/sim_as_real/UR5_FetchReach_0_0_super_small.npy', dataset)
