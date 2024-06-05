@@ -1,5 +1,9 @@
 # UR5_FetchPush env
-![](figures/UR5_FetchPUSH.gif)
+<img src="figures/UR5_FetchPUSH.gif" alt="UR5_FetchPush_sim " width="500"/>
+
+<img src="figures/ReBRAC_UR5_Real_speed.gif" alt="UR5_FetchReach_real " width="500"/>
+
+
 ## UR5 FetchPush Gym Environment
 This repository contains a custom OpenAI Gym-compatible environment for simulating a robotic manipulation task using the UR5 robotic arm. The task, named "FetchPush," involves the UR5 robot pushing an object to a target location on a flat surface. This environment is designed for research and development in the field of reinforcement learning and robotics.
 
@@ -80,9 +84,12 @@ python create_dataset.py
 
 ## Results
 ### Training Performance
-It was plotted by using 600 epochs. 
+It was plotted by using 1000 epochs. 
 
-<img src="figures/UR5_FetchPush_results.png" alt="UR5_FetchPush_results " width="500"/>
+<img src="figures/FetchReach_new_vis.png" alt="UR5_FetchReach_results " width="500"/>
+
+<img src="figures/FetchPP_compare_4.png" alt="UR5_FetchPush_results " width="500"/>
+
 
 <!-- ### Demo:
 
